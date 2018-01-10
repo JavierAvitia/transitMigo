@@ -2,13 +2,23 @@ import React, { Component } from "react";
 import Time from "./grandchildren/Time";
 import API from "../../utils/API";
 import moment from "moment";
+import axios from "axios";
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
       date:null,
+      prevWindow: null,
       lastMarkerPos: { lat: 34.048775, lng: -118.258615 },
+      weather: "",
+      info: "",
+      eventType: "",
+      radius: 5,
+      sortMethod: "distance,asc",
+      currentDate: moment().format().substr(0, 19) + "Z", //format for TM api startDateTime/endDateTime
+      weekDate: moment().add(14, 'day').format().substr(0, 19) + "Z",
+      prevWindow: null,
       transitLines: [
         //REDLINE
         //https://maps.google.com/mapfiles/ms/icons/red-dot.png
@@ -151,11 +161,213 @@ class Home extends Component {
             ]
         ],
         //end line
-      ]
+      ],
+      styles: {
+        default: null,
+        silver: [{
+                elementType: 'geometry',
+                stylers: [{ color: '#f5f5f5' }]
+            },
+            {
+                elementType: 'labels.icon',
+                stylers: [{ visibility: 'off' }]
+            },
+            {
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#616161' }]
+            },
+            {
+                elementType: 'labels.text.stroke',
+                stylers: [{ color: '#f5f5f5' }]
+            },
+            {
+                featureType: 'administrative.land_parcel',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#bdbdbd' }]
+            },
+            {
+                featureType: 'poi',
+                elementType: 'geometry',
+                stylers: [{ color: '#eeeeee' }]
+            },
+            {
+                featureType: 'poi',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#757575' }]
+            },
+            {
+                featureType: 'poi.park',
+                elementType: 'geometry',
+                stylers: [{ color: '#e5e5e5' }]
+            },
+            {
+                featureType: 'poi.park',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#9e9e9e' }]
+            },
+            {
+                featureType: 'road',
+                elementType: 'geometry',
+                stylers: [{ color: '#ffffff' }]
+            },
+            {
+                featureType: 'road.arterial',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#757575' }]
+            },
+            {
+                featureType: 'road.highway',
+                elementType: 'geometry',
+                stylers: [{ color: '#dadada' }]
+            },
+            {
+                featureType: 'road.highway',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#616161' }]
+            },
+            {
+                featureType: 'road.local',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#9e9e9e' }]
+            },
+            {
+                featureType: 'transit.line',
+                elementType: 'geometry',
+                stylers: [{ color: '#e5e5e5' }]
+            },
+            {
+                featureType: 'transit.station',
+                elementType: 'geometry',
+                stylers: [{ color: '#eeeeee' }]
+            },
+            {
+                featureType: 'water',
+                elementType: 'geometry',
+                stylers: [{ color: '#c9c9c9' }]
+            },
+            {
+                featureType: 'water',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#9e9e9e' }]
+            }
+        ],
+
+        retro: [
+            { elementType: 'geometry', stylers: [{ color: '#ebe3cd' }] },
+            { elementType: 'labels.text.fill', stylers: [{ color: '#523735' }] },
+            { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f1e6' }] },
+            {
+                featureType: 'administrative',
+                elementType: 'geometry.stroke',
+                stylers: [{ color: '#c9b2a6' }]
+            },
+            {
+                featureType: 'administrative.land_parcel',
+                elementType: 'geometry.stroke',
+                stylers: [{ color: '#dcd2be' }]
+            },
+            {
+                featureType: 'administrative.land_parcel',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#ae9e90' }]
+            },
+            {
+                featureType: 'landscape.natural',
+                elementType: 'geometry',
+                stylers: [{ color: '#dfd2ae' }]
+            },
+            {
+                featureType: 'poi',
+                elementType: 'geometry',
+                stylers: [{ color: '#dfd2ae' }]
+            },
+            {
+                featureType: 'poi',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#93817c' }]
+            },
+            {
+                featureType: 'poi.park',
+                elementType: 'geometry.fill',
+                stylers: [{ color: '#a5b076' }]
+            },
+            {
+                featureType: 'poi.park',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#447530' }]
+            },
+            {
+                featureType: 'road',
+                elementType: 'geometry',
+                stylers: [{ color: '#f5f1e6' }]
+            },
+            {
+                featureType: 'road.arterial',
+                elementType: 'geometry',
+                stylers: [{ color: '#fdfcf8' }]
+            },
+            {
+                featureType: 'road.highway',
+                elementType: 'geometry',
+                stylers: [{ color: '#f8c967' }]
+            },
+            {
+                featureType: 'road.highway',
+                elementType: 'geometry.stroke',
+                stylers: [{ color: '#e9bc62' }]
+            },
+            {
+                featureType: 'road.highway.controlled_access',
+                elementType: 'geometry',
+                stylers: [{ color: '#e98d58' }]
+            },
+            {
+                featureType: 'road.highway.controlled_access',
+                elementType: 'geometry.stroke',
+                stylers: [{ color: '#db8555' }]
+            },
+            {
+                featureType: 'road.local',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#806b63' }]
+            },
+            {
+                featureType: 'transit.line',
+                elementType: 'geometry',
+                stylers: [{ color: '#dfd2ae' }]
+            },
+            {
+                featureType: 'transit.line',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#8f7d77' }]
+            },
+            {
+                featureType: 'transit.line',
+                elementType: 'labels.text.stroke',
+                stylers: [{ color: '#ebe3cd' }]
+            },
+            {
+                featureType: 'transit.station',
+                elementType: 'geometry',
+                stylers: [{ color: '#dfd2ae' }]
+            },
+            {
+                featureType: 'water',
+                elementType: 'geometry.fill',
+                stylers: [{ color: '#b9d3c2' }]
+            },
+            {
+                featureType: 'water',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#92998d' }]
+            }
+        ]
+      }
     };
     // Binding getQuotes to our component since we'll be passing this
     // method to child components
     this.getTime = this.getTime.bind(this);
+    this.addInfo = this.addInfo.bind(this);
     this.renderMap = this.renderMap.bind(this);
     this.populateMarkers = this.populateMarkers.bind(this);
   }
@@ -167,17 +379,310 @@ class Home extends Component {
   getTime() {
     var time = moment();
     var date = time.format("dddd, MMMM Do YYYY");
+    var currentDate = time.format().substr(0, 19) + "Z";
+    var weekDate = time.add(14, 'day').format().substr(0, 19) + "Z";
 
     this.setState({
-      date
+      date,
+      currentDate,
+      weekDate
     });
     this.renderMap();
   }
 
-  populateMarkers(latLongArr,map) {
+  addInfo(station,line){
+    console.log(station,line);
+    axios.get(`/api/metro/${line[1]}/${station[3]}`).then(function(data){
+      console.log(data);
+      return data;
+    });
+  }
+
+  addInfoo(station, line) {
+        //sync ajax calls
+        var queryURL = "https://app.ticketmaster.com/discovery/v2/events.json?size=100&latlong=" +
+            station[1] + "," + station[2] +
+            "&radius=" + this.state.radius + "&unit=miles&sort=" + this.state.sortMethod +
+            "&startDateTime=" + this.state.currentDate +
+            "&endDateTime=" + this.state.weekDate +
+            "&apikey=HSapqKFWyAlQB7MxBkl3dvnFWzTWBkQ9";
+        if (this.state.eventType != '') {
+            var append = "&classificationName=" + this.state.eventType;
+            queryURL += append;
+        }
+        return axios.all([
+          axios.get("https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='(" +
+            station[1] + "," + station[2] + ")') and u='f'&format=json"),
+          axios.get(queryURL),
+          axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + line[1] + "/stops/" +
+            station[3] + "/predictions/", { crossdomain: true }),
+          axios.get("https://data.tmsapi.com/v1.1/movies/showings?startDate=" +
+            this.state.currentDate.slice(0, 10) + "&lat=" + station[1] + "&lng=" + station[2] +
+            "&api_key=cuen8da9wsfaewzvecfxd7ga")
+        ]).then(function(resp1, resp2, resp3, resp4) {
+
+            /*console.log(JSON.parse(resp3[0]));*/
+            resp3 = JSON.parse(resp3[0]);
+
+            var upcomingTrain = "";
+            var weatherIcon = "";
+
+            for (var i = 0; i < resp3.items.length && i < 3; i++) {
+
+                upcomingTrain += moment().add(resp3.items[i].minutes, 'minutes').format("h:mm A") + " / ";
+
+            }
+
+            var nearby = "";
+            var j = 0;
+
+            this.state.weather = "Local weather: " +
+                resp1[0].query.results.channel.item.forecast[0].high + "H/ " +
+                resp1[0].query.results.channel.item.forecast[0].low + "L/" +
+                resp1[0].query.results.channel.item.forecast[0].text;
+
+            //console.log(resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("sun"));
+
+            if (resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("sun") > -1) {
+
+                weatherIcon = "<i class='fa fa-sun-o' aria-hidden='true'></i>";
+
+            } else if (resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("cloud") > -1) {
+
+                weatherIcon = "<i class='fa fa-cloud' aria-hidden='true'></i>";
+
+            } else if (resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("rain") > -1) {
+
+                weatherIcon = "<i class='fa fa-tint' aria-hidden='true'></i>";
+
+            }
+
+            //begin   
+
+            if (jQuery.isEmptyObject(resp2[0]._embedded)) {
+
+                nearby = "Check again soon for more events!";
+
+            } else {
+
+                while (j < resp2[0]._embedded.events.length && j < 10) {
+
+                    var genre = "";
+
+                    if (resp2[0]._embedded.events[j].classifications) {
+                        genre = resp2[0]._embedded.events[j].classifications[0].segment.name;
+                    } else {
+                        genre = "N/A";
+                    }
+
+                    nearby += ("<div class='stuff'>" +
+                        "<span class='position'>" + (j + 1) +
+                        ". </span>" + resp2[0]._embedded.events[j]._embedded.venues[0].name +
+                        " (" + genre + ")<span id='eventDate'> - " +
+                        resp2[0]._embedded.events[j].dates.start.localDate +
+                        "</span><br>" +
+                        resp2[0]._embedded.events[j].name +
+                        " - " +
+                        (resp2[0]._embedded.events[j].distance).toFixed(2) +
+                        "mi<br>" +
+                        "<img src=" + resp2[0]._embedded.events[j].images[0].url +
+                        " alt='event_img' width='115' station='" +
+                        station[0] + "' line='" +
+                        line[0] + "'>" +
+                        "<a href=" + resp2[0]._embedded.events[j].url +
+                        " target='_blank'>Purchase tickets now!</a></div><hr>");
+                    j++;
+                } //end while loop
+            } //end if statement
+
+
+            var k = 0;
+            var movies = "";
+
+
+
+            if ((resp4[0].length === 0)) {
+
+                movies = "There are no movie theaters nearby!";
+
+            } else {
+
+
+
+                var moviesObj = {};
+
+                for (var i = 0; i < resp4[0].length; i++) {
+
+                    var theatreName = "";
+                    moviesObj[resp4[0][i].title] = {};
+
+                    var poster;
+                    var ratings;
+
+
+                    if (resp4[0][i].ratings) {
+
+                        ratings = resp4[0][i].ratings[0].code;
+
+                    } else {
+
+                        ratings = "N/A";
+
+
+                    }
+
+
+                    poster = "<img class='movie_poster' src='https://dlby.tmsimg.com/" + resp4[0][i].preferredImage.uri +
+                        "?api_key=gvmc8sysuqe8pwpshucfnn33' height=150 station='" +
+                        station[0] + "' line='" +
+                        line[0] + "'>";
+
+
+
+
+
+                    for (var j = 0; j < resp4[0][i].showtimes.length; j++) {
+
+
+
+                        if (resp4[0][i].showtimes[j].ticketURI) {
+
+                            var timeCompare = (resp4[0][i].showtimes[j].dateTime).slice(11, 16);
+
+                            var tempTime = moment(timeCompare, "HH:mm").format("h:mm A");
+
+                            tempTime = "<a href='" + resp4[0][i].showtimes[j].ticketURI + "+" + timeCompare +
+                                "' target=_blank> " + tempTime + " </a>";
+
+
+                            if (!moviesObj[resp4[0][i].title][resp4[0][i].showtimes[j].theatre.name]) {
+
+                                moviesObj[resp4[0][i].title][resp4[0][i].showtimes[j].theatre.name] = [];
+
+                            }
+
+                            moviesObj[resp4[0][i].title][resp4[0][i].showtimes[j].theatre.name].push(tempTime);
+
+                        }
+
+
+                    } //end inner for loop 
+
+
+                    var times = "";
+
+                    (Object.keys(moviesObj)).forEach(function(movie) {
+
+                        times = "";
+
+
+                        (Object.keys(moviesObj[movie])).forEach(function(theatre) {
+
+                            times += "<br />" + "<h6>" + theatre + "</h6>";
+
+
+
+                            for (var i = 0; i < Object.keys(moviesObj[movie][theatre]).length; i++) {
+
+                                times += (moviesObj[movie][theatre][i] + "&nbsp;");
+                            };
+
+
+                        })
+
+                    })
+
+
+                    if (times != '') {
+                        movies += "<div class='movies_info'>"
+
+                            +
+                            poster
+
+                            +
+                            "<h4><strong>"
+
+                            +
+                            resp4[0][i].title
+
+                            +
+                            "</strong>"
+
+                            +
+                            "&emsp;Rated: "
+
+                            +
+                            ratings
+
+                            +
+                            "</h4>"
+
+                            +
+                            "<span>"
+
+                            +
+                            times
+
+                            +
+                            "</span>"
+
+                            +
+                            "</div>"
+
+
+                            +
+                            "<hr>";
+                    }
+
+                } //end outter for loop
+
+
+
+                //console.log(moviesObj);
+
+
+            } //end else statement
+            // console.log(weatherIcon)
+
+            this.state.info = ("<div class='station'><strong>" + station[0] + " - (" + moment(date).format("M/D/YY") + ")" +
+                "<br>Upcoming Trains <i class='fa fa-train'></i> (real-time): " + upcomingTrain.slice(0, upcomingTrain.length - 2) +
+                "</strong>" + "</div><div class='weather'>" + this.state.weather + " " + weatherIcon + "</div><hr>" +
+                "<div id='myCarousel' class='carousel slide' data-ride='carousel' data-interval='false'>" +
+                "<!-- Indicators -->" +
+                "<ol class='carousel-indicators'>" +
+                "<li data-target='#myCarousel' data-slide-to='0' class='active'></li>" +
+                "<li data-target='#myCarousel' data-slide-to='1'></li>" +
+                "</ol>" +
+                "<!-- Wrapper for slides -->" +
+                "<div class='carousel-inner'>" +
+                "<div class='item active'>" +
+                nearby +
+                "</div>" +
+                "<div class='item'>" +
+                movies +
+                "</div>" +
+                "</div>" +
+                "<!-- Left and right controls -->" +
+                "<a class='left carousel-control' href='#myCarousel' data-slide='prev'>" +
+                "<span class='glyphicon glyphicon-chevron-left'></span>" +
+                "<span class='sr-only'>Previous</span>" +
+                "</a>" +
+                "<a class='right carousel-control' href='#myCarousel' data-slide='next'>" +
+                "<span class='glyphicon glyphicon-chevron-right'></span>" +
+                "<span class='sr-only'>Next</span>" +
+                "</a>" +
+                "</div>");
+        }) //end statement
+
+
+        //end
+  }
+
+  populateMarkers(latLongArr,styles,map) {
+    //var prevWindow = this.state.prevWindow;
 
     latLongArr.forEach(function(line, j) {
-      console.log(line)
+      /*console.log(line)*/
 
       var info = [];
       info.length = line[2].length;
@@ -186,6 +691,7 @@ class Home extends Component {
       var marker, i;
       //do not change from i, it is same i of station index!
       line[2].forEach(function(stations, i) {
+          /*console.log(this);*/
           marker = new google.maps.Marker({
 
               position: new google.maps.LatLng(stations[1], stations[2]),
@@ -199,25 +705,31 @@ class Home extends Component {
           });
 
           google.maps.event.addListener(marker, 'click', (function(marker, i) {
+              // console.log(this);
               return function() {
-                 /* if (functions.prevWindow != null)
-                      functions.prevWindow.close();*/
+
+                  console.log(this);
+
+                  if (this.state.prevWindow != null){
+                    this.state.prevWindow.close();
+                  }
+
 //modify to make API call to backend.
 
-                  /*functions.addInfo(stations, line[0]).then(function() {
-                      infowindow.setContent(functions.info);
+                  this.addInfo(stations, line[0])/*.then(function() {
+                      infowindow.setContent(this.state.info);
                       infowindow.open(map, marker);
-                      functions.prevWindow = infowindow;
+                      this.state.prevWindow = infowindow;
                   });*/
 
-              }
-          })(marker, i));
+              }.bind(this)
+          }.bind(this))(marker, i));
 
           marker.addListener('click', function() {
               map.setZoom(16);
-              /*functions.lastMarkerPos = this.getPosition();*/
+              /*this.lastMarkerPos = this.getPosition();*/
               map.setCenter(this.getPosition());
-              var styleSelector = document.getElementById('style-selector');
+              // var styleSelector = document.getElementById('style-selector');
               map.setOptions({
                   styles: styles["retro"],
                   draggable: false,
@@ -225,7 +737,7 @@ class Home extends Component {
               });
           });
 
-          /*functions.markersArr.push(marker);*/
+          /*this.markersArr.push(marker);*/
 
           google.maps.event.addListener(infowindow, 'closeclick', function() {
 
@@ -240,19 +752,24 @@ class Home extends Component {
               });
           });
 
-      });
-    });
+      }.bind(this));
+    }.bind(this));
   }
+
+  /*NEED TO MOVE ALL THE GIANT ARRAY INTO A UTILS AND IMPORT THEM*/
+  /*POLYLINES NEED TO BE AUTOMATIC OR TEMPORARILY HARD-CODED AS IN PROJECT ONE*/
+  /*FUNCTIONS OBJECT FROM PROJECT ONE NEEDS TO BE CONVERTED INTO REACT STATE PROPERTIES OR COMPONENT FUNCTIONS*/
 
   // A helper method for rendering one panel for each quote
   renderMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 34.048775, lng: -118.258615 },
         zoom: 10,
+        styles: this.state.styles["silver"],
         mapTypeControl: false,
         clickableIcons: false
     });
-    this.populateMarkers(this.state.transitLines,map);
+    this.populateMarkers(this.state.transitLines,this.state.styles,map);
   }
 
   render() {

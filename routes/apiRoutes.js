@@ -2,6 +2,8 @@ var express = require("express");
 
 var bcrypt = require("bcryptjs");
 
+var axios = require("axios");
+
 var db = require("../models");
 
 var taskAPI = require("./functions/taskFunctions.js");
@@ -81,22 +83,16 @@ router.put("/UserTasks/:action", function(req, res) {
 
 /*END USER ROUTES*/
 
+router.get("/metro/:line/:station", function(req,res) {
+    console.log("doggy");
+    axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + req.params.line + "/stops/" +
+        req.params.station + "/predictions/",
+        { crossdomain: true }
+    ).then(function(data) {
+        console.log(data.data);
+        /*res.json(data);*/
+    });
 
-
-
-// // to find a user by id, or to check if username exists for signups
-// router.get("/users/:id", function(req, res) {
-//     var query = {};
-//     if (req.query.name || req.query.email) {
-//         query = req.query;
-//     } else {
-//         query.id = req.params.id;
-//     }
-//     db.User.findOne({
-//         where: query
-//     }).then(function(dbUser) {
-//         res.json(dbUser);
-//     });
-// });
+});
 
 module.exports = router;
