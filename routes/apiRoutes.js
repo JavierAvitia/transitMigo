@@ -1,15 +1,8 @@
-var express = require("express");
-
-var bcrypt = require("bcryptjs");
-
-var axios = require("axios");
-
-var db = require("../models");
-
-var taskAPI = require("./functions/taskFunctions.js");
 var timesheetAPI = require("./functions/timesheetFunctions.js");
+var taskAPI = require("./functions/taskFunctions.js");
 var userAPI = require("./functions/userFunctions.js");
-
+var appAPI = require("./functions/appFunctions.js");
+var express = require("express");
 var router = new express.Router();
 
 /*BEGIN TASK ROUTES*/
@@ -82,16 +75,16 @@ router.put("/UserTasks/:action", function(req, res) {
 });
 
 /*END USER ROUTES*/
-
-router.get("/metro/:line/:station", function(req,res) {
-    console.log("doggy");
-    axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + req.params.line + "/stops/" +
-        req.params.station + "/predictions/",
-        { crossdomain: true }
-    ).then(function(data) {
-        console.log(data.data);
-        /*res.json(data);*/
-    });
+/* /metro/:line/:station */
+router.post("/populate", function(req,res) {
+    // axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + req.params.line + "/stops/" +
+    //     req.params.station + "/predictions/",
+    //     { crossdomain: true }
+    // ).then(function(data) {
+    //     console.log(data.data);
+    //     /*res.json(data);*/
+    // });
+    appAPI.getInfo(req,res);
 
 });
 

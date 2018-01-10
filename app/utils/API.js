@@ -2,25 +2,21 @@ import axios from "axios";
 
 const API = {
   //Task APIs
-  // Retrieves all quotes from the db
   getTasks: function() {
     return axios.get("/api/tasks");
   },
-  // Saves a new quote to the db
+  //
   saveTask: function(text) {
     return axios.post("/api/tasks", { name: text });
   },
-  // Deletes a quote from the db
+  //
   deleteTask: function(id) {
     return axios.delete(`/api/tasks/${id}`);
   },
   // Toggles a quote's favorite property in the db
   priorityTask: function(task) {
-    // console.log(quote.favorited);
     task.priority = !task.priority;
-    // console.log(quote.favorited);
     const { id, priority } = task;
-    // console.log(id);
     return axios.put(`/api/tasks/${id}`, { priority });
   },
   //end Tasks
@@ -62,8 +58,16 @@ const API = {
     }
 
     return axios.post("/api/users/login?" + queryName + "=" + name, { name, password });
-  }
+  },
   //end User
+
+  //App APIs
+  getInfo: function(line,station,URLs){
+    /*return axios.get(`/api/metro/${line}/${station}`)*/
+    return axios.post("/api/populate",{ line, station, URLs})
+  }
+  //end App
+
 };
 
 export default API;

@@ -387,12 +387,30 @@ class Home extends Component {
       currentDate,
       weekDate
     });
+
     this.renderMap();
   }
 
   addInfo(station,line){
-    console.log(station,line);
-    axios.get(`/api/metro/${line[1]}/${station[3]}`).then(function(data){
+
+    var eventsURL = "https://app.ticketmaster.com/discovery/v2/events.json?size=100&latlong=" +
+      station[1] + "," + station[2] + "&radius=" + this.state.radius + "&unit=miles&sort=" +
+      this.state.sortMethod + "&startDateTime=" + this.state.currentDate + "&endDateTime=" + 
+      this.state.weekDate + "&apikey=HSapqKFWyAlQB7MxBkl3dvnFWzTWBkQ9";
+      
+    var moviesURL = "https://data.tmsapi.com/v1.1/movies/showings?startDate=" +
+      this.state.currentDate.slice(0, 10) + "&lat=" + station[1] + "&lng=" + station[2] +
+      "&api_key=cuen8da9wsfaewzvecfxd7ga";
+
+    var weatherURL = "https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='(" +
+      station[1] + "," + station[2] + ")') and u='f'&format=json";
+
+    var metroURL = "https://api.metro.net/agencies/lametro-rail/routes/" + line[1] + "/stops/" +
+      station[3] + "/predictions/";
+
+    var URLs = { eventsURL, moviesURL, weatherURL, metroURL}
+
+    API.getInfo(line,station,URLs).then(function(data){
       console.log(data);
       return data;
     });
@@ -406,6 +424,7 @@ class Home extends Component {
             "&startDateTime=" + this.state.currentDate +
             "&endDateTime=" + this.state.weekDate +
             "&apikey=HSapqKFWyAlQB7MxBkl3dvnFWzTWBkQ9";
+
         if (this.state.eventType != '') {
             var append = "&classificationName=" + this.state.eventType;
             queryURL += append;
@@ -705,16 +724,11 @@ class Home extends Component {
           });
 
           google.maps.event.addListener(marker, 'click', (function(marker, i) {
-              // console.log(this);
               return function() {
-
-                  console.log(this);
 
                   if (this.state.prevWindow != null){
                     this.state.prevWindow.close();
                   }
-
-//modify to make API call to backend.
 
                   this.addInfo(stations, line[0])/*.then(function() {
                       infowindow.setContent(this.state.info);
