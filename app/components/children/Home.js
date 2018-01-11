@@ -12,6 +12,9 @@ class Home extends Component {
       prevWindow: null,
       lastMarkerPos: { lat: 34.048775, lng: -118.258615 },
       weather: "",
+      nearby:"",
+      movies:"",
+      upcomingTrain:"",
       info: "",
       eventType: "",
       radius: 5,
@@ -391,13 +394,211 @@ class Home extends Component {
     this.renderMap();
   }
 
-  addInfo(station,line){
+  resp1(resp){
+    var weatherIcon = "";
+
+    if (resp.query.results.channel.item.forecast[0].text.toLowerCase().search("sun") > -1) {
+
+        weatherIcon = "<i class='fa fa-sun-o' aria-hidden='true'></i>";
+
+    } else if (resp.query.results.channel.item.forecast[0].text.toLowerCase().search("cloud") > -1) {
+
+        weatherIcon = "<i class='fa fa-cloud' aria-hidden='true'></i>";
+
+    } else if (resp.query.results.channel.item.forecast[0].text.toLowerCase().search("rain") > -1) {
+
+        weatherIcon = "<i class='fa fa-tint' aria-hidden='true'></i>";
+
+    }
+
+    this.state.weather = `Local weather: ${resp.query.results.channel.item.forecast[0].high} H/ 
+      ${resp.query.results.channel.item.forecast[0].low} L/ ${resp.query.results.channel.item.forecast[0].text} 
+      ${weatherIcon} `
+
+  }
+
+  resp2(resp,line,station) {
+    var nearby = "";
+    var j = 0;
+
+    if (jQuery.isEmptyObject(resp._embedded)) {
+
+        nearby = "Check again soon for more events!";
+
+      } else {
+
+          while (j < resp._embedded.events.length && j < 10) {
+
+              var genre = "";
+
+              if (resp._embedded.events[j].classifications) {
+                  genre = resp._embedded.events[j].classifications[0].segment.name;
+              } else {
+                  genre = "N/A";
+              }
+
+              nearby += ("<div class='stuff'>" +
+                  "<span class='position'>" + (j + 1) +
+                  ". </span>" + resp._embedded.events[j]._embedded.venues[0].name +
+                  " (" + genre + ")<span id='eventDate'> - " +
+                  resp._embedded.events[j].dates.start.localDate +
+                  "</span><br>" +
+                  resp._embedded.events[j].name +
+                  " - " +
+                  (resp._embedded.events[j].distance).toFixed(2) +
+                  "mi<br>" +
+                  "<img src=" + resp._embedded.events[j].images[0].url +
+                  " alt='event_img' width='115' station='" +
+                  station[0] + "' line='" +
+                  line[0] + "'>" +
+                  "<a href=" + resp._embedded.events[j].url +
+                  " target='_blank'>Purchase tickets now!</a></div><hr>");
+              j++;
+          } //end while loop
+
+          this.state.nearby = nearby;
+
+      } //end if statement
+  }
+
+  resp3(resp) {
+    var upcomingTrain = "";
+
+    for (var i = 0; i < resp.items.length && i < 3; i++) {
+
+      upcomingTrain += moment().add(resp.items[i].minutes, 'minutes').format("h:mm A") + " / ";
+
+    }
+
+    this.state.upcomingTrain = upcomingTrain;
+
+  }
+
+  resp4(resp,line,station) {
+    var k = 0;
+    var movies = "";
+
+    if ((resp.length === 0)) {
+
+      movies = "There are no movie theaters nearby!";
+
+    } else {
+    
+      var moviesObj = {};
+
+      for (var i = 0; i < resp.length; i++) {
+
+        moviesObj[resp[i].title] = {};
+        var theatreName = "";
+        var ratings;
+        var poster;
+
+        if (resp[i].ratings) {
+
+          ratings = resp[i].ratings[0].code;
+
+        } else {
+
+          ratings = "N/A";
+
+        }
+
+        poster = "<img class='movie_poster' src='https://dlby.tmsimg.com/" + resp[i].preferredImage.uri +
+          "?api_key=gvmc8sysuqe8pwpshucfnn33' height=150 station='" +
+          station[0] + "' line='" +
+          line[0] + "'>";
+
+        for (var j = 0; j < resp[i].showtimes.length; j++) {
+          if (resp[i].showtimes[j].ticketURI) {
+
+              var timeCompare = (resp[i].showtimes[j].dateTime).slice(11, 16);
+              var tempTime = moment(timeCompare, "HH:mm").format("h:mm A");
+
+              tempTime = "<a href='" + resp[i].showtimes[j].ticketURI + "+" + timeCompare +
+                "' target=_blank> " + tempTime + " </a>";
+
+
+              if (!moviesObj[resp[i].title][resp[i].showtimes[j].theatre.name]) {
+
+                moviesObj[resp[i].title][resp[i].showtimes[j].theatre.name] = [];
+
+              }
+
+              moviesObj[resp[i].title][resp[i].showtimes[j].theatre.name].push(tempTime);
+
+          }
+
+
+        } //end inner for loop 
+
+
+        var times = "";
+
+        (Object.keys(moviesObj)).forEach(function(movie) {
+
+          times = "";
+
+          (Object.keys(moviesObj[movie])).forEach(function(theatre) {
+
+            times += "<br />" + "<h6>" + theatre + "</h6>";
+
+            for (var i = 0; i < Object.keys(moviesObj[movie][theatre]).length; i++) {
+
+              times += (moviesObj[movie][theatre][i] + "&nbsp;");
+                            
+            };
+
+
+          })
+
+        })
+      
+        if (times != '') {
+          
+          movies += "<div class='movies_info'>" + poster + "<h4><strong>" + resp[i].title + "</strong>"
+            + "&emsp;Rated: " + ratings + "</h4>" + "<span>" + times + "</span>" + "</div>" + "<hr>";
+        
+        }
+
+      } //end outter for loop
+
+    } //end else statement
+
+    this.state.movies = movies;
+
+  }
+
+  setInfo(station,gMapObj) {
+
+    var infowindow = gMapObj.infowindow;
+    var marker = gMapObj.marker;
+    var map = gMapObj.map;
+
+    this.state.info = ("<div class='station'><strong>" + station[0] + " - (" + moment(this.state.currentDate).format("M/D/YY") + ")" +
+      "<br>Upcoming Trains <i class='fa fa-train'></i> (real-time): " + 
+      this.state.upcomingTrain.slice(0, this.state.upcomingTrain.length - 2) + "</strong>" +
+      "</div><div class='weather'>" + this.state.weather + "</div><hr>" +
+      "<div id='myCarousel' class='carousel slide' data-ride='carousel' data-interval='false'>" + 
+      "<ol class='carousel-indicators'>" + "<li data-target='#myCarousel' data-slide-to='0' class='active'></li>" +
+      "<li data-target='#myCarousel' data-slide-to='1'></li></ol>" + 
+      "<div class='carousel-inner'><div class='item active'>" + this.state.nearby + "</div><div class='item'>" + 
+      this.state.movies + "</div></div><a class='left carousel-control' href='#myCarousel' data-slide='prev'>" +
+      "<span class='glyphicon glyphicon-chevron-left'></span>" +
+      "<span class='sr-only'>Previous</span></a><a class='right carousel-control' href='#myCarousel' data-slide='next'>" +
+      "<span class='glyphicon glyphicon-chevron-right'></span><span class='sr-only'>Next</span></a></div>");
+
+    infowindow.setContent(this.state.info);
+    infowindow.open(map, marker);
+    this.state.prevWindow = infowindow;
+  }
+
+  addInfo(station,line,gMapObj) {
 
     var eventsURL = "https://app.ticketmaster.com/discovery/v2/events.json?size=100&latlong=" +
       station[1] + "," + station[2] + "&radius=" + this.state.radius + "&unit=miles&sort=" +
       this.state.sortMethod + "&startDateTime=" + this.state.currentDate + "&endDateTime=" + 
       this.state.weekDate + "&apikey=HSapqKFWyAlQB7MxBkl3dvnFWzTWBkQ9";
-      
+
     var moviesURL = "https://data.tmsapi.com/v1.1/movies/showings?startDate=" +
       this.state.currentDate.slice(0, 10) + "&lat=" + station[1] + "&lng=" + station[2] +
       "&api_key=cuen8da9wsfaewzvecfxd7ga";
@@ -410,291 +611,13 @@ class Home extends Component {
 
     var URLs = { eventsURL, moviesURL, weatherURL, metroURL}
 
-    API.getInfo(line,station,URLs).then(function(data){
-      console.log(data);
-      return data;
-    });
-  }
-
-  addInfoo(station, line) {
-        //sync ajax calls
-        var queryURL = "https://app.ticketmaster.com/discovery/v2/events.json?size=100&latlong=" +
-            station[1] + "," + station[2] +
-            "&radius=" + this.state.radius + "&unit=miles&sort=" + this.state.sortMethod +
-            "&startDateTime=" + this.state.currentDate +
-            "&endDateTime=" + this.state.weekDate +
-            "&apikey=HSapqKFWyAlQB7MxBkl3dvnFWzTWBkQ9";
-
-        if (this.state.eventType != '') {
-            var append = "&classificationName=" + this.state.eventType;
-            queryURL += append;
-        }
-        return axios.all([
-          axios.get("https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='(" +
-            station[1] + "," + station[2] + ")') and u='f'&format=json"),
-          axios.get(queryURL),
-          axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + line[1] + "/stops/" +
-            station[3] + "/predictions/", { crossdomain: true }),
-          axios.get("https://data.tmsapi.com/v1.1/movies/showings?startDate=" +
-            this.state.currentDate.slice(0, 10) + "&lat=" + station[1] + "&lng=" + station[2] +
-            "&api_key=cuen8da9wsfaewzvecfxd7ga")
-        ]).then(function(resp1, resp2, resp3, resp4) {
-
-            /*console.log(JSON.parse(resp3[0]));*/
-            resp3 = JSON.parse(resp3[0]);
-
-            var upcomingTrain = "";
-            var weatherIcon = "";
-
-            for (var i = 0; i < resp3.items.length && i < 3; i++) {
-
-                upcomingTrain += moment().add(resp3.items[i].minutes, 'minutes').format("h:mm A") + " / ";
-
-            }
-
-            var nearby = "";
-            var j = 0;
-
-            this.state.weather = "Local weather: " +
-                resp1[0].query.results.channel.item.forecast[0].high + "H/ " +
-                resp1[0].query.results.channel.item.forecast[0].low + "L/" +
-                resp1[0].query.results.channel.item.forecast[0].text;
-
-            //console.log(resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("sun"));
-
-            if (resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("sun") > -1) {
-
-                weatherIcon = "<i class='fa fa-sun-o' aria-hidden='true'></i>";
-
-            } else if (resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("cloud") > -1) {
-
-                weatherIcon = "<i class='fa fa-cloud' aria-hidden='true'></i>";
-
-            } else if (resp1[0].query.results.channel.item.forecast[0].text.toLowerCase().search("rain") > -1) {
-
-                weatherIcon = "<i class='fa fa-tint' aria-hidden='true'></i>";
-
-            }
-
-            //begin   
-
-            if (jQuery.isEmptyObject(resp2[0]._embedded)) {
-
-                nearby = "Check again soon for more events!";
-
-            } else {
-
-                while (j < resp2[0]._embedded.events.length && j < 10) {
-
-                    var genre = "";
-
-                    if (resp2[0]._embedded.events[j].classifications) {
-                        genre = resp2[0]._embedded.events[j].classifications[0].segment.name;
-                    } else {
-                        genre = "N/A";
-                    }
-
-                    nearby += ("<div class='stuff'>" +
-                        "<span class='position'>" + (j + 1) +
-                        ". </span>" + resp2[0]._embedded.events[j]._embedded.venues[0].name +
-                        " (" + genre + ")<span id='eventDate'> - " +
-                        resp2[0]._embedded.events[j].dates.start.localDate +
-                        "</span><br>" +
-                        resp2[0]._embedded.events[j].name +
-                        " - " +
-                        (resp2[0]._embedded.events[j].distance).toFixed(2) +
-                        "mi<br>" +
-                        "<img src=" + resp2[0]._embedded.events[j].images[0].url +
-                        " alt='event_img' width='115' station='" +
-                        station[0] + "' line='" +
-                        line[0] + "'>" +
-                        "<a href=" + resp2[0]._embedded.events[j].url +
-                        " target='_blank'>Purchase tickets now!</a></div><hr>");
-                    j++;
-                } //end while loop
-            } //end if statement
-
-
-            var k = 0;
-            var movies = "";
-
-
-
-            if ((resp4[0].length === 0)) {
-
-                movies = "There are no movie theaters nearby!";
-
-            } else {
-
-
-
-                var moviesObj = {};
-
-                for (var i = 0; i < resp4[0].length; i++) {
-
-                    var theatreName = "";
-                    moviesObj[resp4[0][i].title] = {};
-
-                    var poster;
-                    var ratings;
-
-
-                    if (resp4[0][i].ratings) {
-
-                        ratings = resp4[0][i].ratings[0].code;
-
-                    } else {
-
-                        ratings = "N/A";
-
-
-                    }
-
-
-                    poster = "<img class='movie_poster' src='https://dlby.tmsimg.com/" + resp4[0][i].preferredImage.uri +
-                        "?api_key=gvmc8sysuqe8pwpshucfnn33' height=150 station='" +
-                        station[0] + "' line='" +
-                        line[0] + "'>";
-
-
-
-
-
-                    for (var j = 0; j < resp4[0][i].showtimes.length; j++) {
-
-
-
-                        if (resp4[0][i].showtimes[j].ticketURI) {
-
-                            var timeCompare = (resp4[0][i].showtimes[j].dateTime).slice(11, 16);
-
-                            var tempTime = moment(timeCompare, "HH:mm").format("h:mm A");
-
-                            tempTime = "<a href='" + resp4[0][i].showtimes[j].ticketURI + "+" + timeCompare +
-                                "' target=_blank> " + tempTime + " </a>";
-
-
-                            if (!moviesObj[resp4[0][i].title][resp4[0][i].showtimes[j].theatre.name]) {
-
-                                moviesObj[resp4[0][i].title][resp4[0][i].showtimes[j].theatre.name] = [];
-
-                            }
-
-                            moviesObj[resp4[0][i].title][resp4[0][i].showtimes[j].theatre.name].push(tempTime);
-
-                        }
-
-
-                    } //end inner for loop 
-
-
-                    var times = "";
-
-                    (Object.keys(moviesObj)).forEach(function(movie) {
-
-                        times = "";
-
-
-                        (Object.keys(moviesObj[movie])).forEach(function(theatre) {
-
-                            times += "<br />" + "<h6>" + theatre + "</h6>";
-
-
-
-                            for (var i = 0; i < Object.keys(moviesObj[movie][theatre]).length; i++) {
-
-                                times += (moviesObj[movie][theatre][i] + "&nbsp;");
-                            };
-
-
-                        })
-
-                    })
-
-
-                    if (times != '') {
-                        movies += "<div class='movies_info'>"
-
-                            +
-                            poster
-
-                            +
-                            "<h4><strong>"
-
-                            +
-                            resp4[0][i].title
-
-                            +
-                            "</strong>"
-
-                            +
-                            "&emsp;Rated: "
-
-                            +
-                            ratings
-
-                            +
-                            "</h4>"
-
-                            +
-                            "<span>"
-
-                            +
-                            times
-
-                            +
-                            "</span>"
-
-                            +
-                            "</div>"
-
-
-                            +
-                            "<hr>";
-                    }
-
-                } //end outter for loop
-
-
-
-                //console.log(moviesObj);
-
-
-            } //end else statement
-            // console.log(weatherIcon)
-
-            this.state.info = ("<div class='station'><strong>" + station[0] + " - (" + moment(date).format("M/D/YY") + ")" +
-                "<br>Upcoming Trains <i class='fa fa-train'></i> (real-time): " + upcomingTrain.slice(0, upcomingTrain.length - 2) +
-                "</strong>" + "</div><div class='weather'>" + this.state.weather + " " + weatherIcon + "</div><hr>" +
-                "<div id='myCarousel' class='carousel slide' data-ride='carousel' data-interval='false'>" +
-                "<!-- Indicators -->" +
-                "<ol class='carousel-indicators'>" +
-                "<li data-target='#myCarousel' data-slide-to='0' class='active'></li>" +
-                "<li data-target='#myCarousel' data-slide-to='1'></li>" +
-                "</ol>" +
-                "<!-- Wrapper for slides -->" +
-                "<div class='carousel-inner'>" +
-                "<div class='item active'>" +
-                nearby +
-                "</div>" +
-                "<div class='item'>" +
-                movies +
-                "</div>" +
-                "</div>" +
-                "<!-- Left and right controls -->" +
-                "<a class='left carousel-control' href='#myCarousel' data-slide='prev'>" +
-                "<span class='glyphicon glyphicon-chevron-left'></span>" +
-                "<span class='sr-only'>Previous</span>" +
-                "</a>" +
-                "<a class='right carousel-control' href='#myCarousel' data-slide='next'>" +
-                "<span class='glyphicon glyphicon-chevron-right'></span>" +
-                "<span class='sr-only'>Next</span>" +
-                "</a>" +
-                "</div>");
-        }) //end statement
-
-
-        //end
+    API.getInfo(line,station,URLs).then(function(response){
+      this.resp1(response.data.resp1);
+      this.resp2(response.data.resp2,line,station);
+      this.resp3(response.data.resp3);
+      this.resp4(response.data.resp4,line,station);
+      this.setInfo(station,gMapObj);
+    }.bind(this));
   }
 
   populateMarkers(latLongArr,styles,map) {
@@ -730,11 +653,11 @@ class Home extends Component {
                     this.state.prevWindow.close();
                   }
 
-                  this.addInfo(stations, line[0])/*.then(function() {
+                  this.addInfo(stations, line[0], { infowindow, map, marker })/*.then(function() {
                       infowindow.setContent(this.state.info);
                       infowindow.open(map, marker);
                       this.state.prevWindow = infowindow;
-                  });*/
+                  })*/;
 
               }.bind(this)
           }.bind(this))(marker, i));
