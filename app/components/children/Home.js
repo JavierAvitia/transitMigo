@@ -371,7 +371,9 @@ class Home extends Component {
     // method to child components
     this.getTime = this.getTime.bind(this);
     this.addInfo = this.addInfo.bind(this);
+    this.setInfo = this.setInfo.bind(this);
     this.renderMap = this.renderMap.bind(this);
+    this.activateLazers = this.activateLazers.bind(this);
     this.populateMarkers = this.populateMarkers.bind(this);
   }
   // Getting all quotes when the component mounts
@@ -429,30 +431,24 @@ class Home extends Component {
 
           while (j < resp._embedded.events.length && j < 10) {
 
+              var events = resp._embedded.events[j];
               var genre = "";
 
-              if (resp._embedded.events[j].classifications) {
-                  genre = resp._embedded.events[j].classifications[0].segment.name;
+              if (events.classifications) {
+                  genre = events.classifications[0].segment.name;
               } else {
                   genre = "N/A";
               }
 
-              nearby += ("<div class='stuff'>" +
-                  "<span class='position'>" + (j + 1) +
-                  ". </span>" + resp._embedded.events[j]._embedded.venues[0].name +
-                  " (" + genre + ")<span id='eventDate'> - " +
-                  resp._embedded.events[j].dates.start.localDate +
-                  "</span><br>" +
-                  resp._embedded.events[j].name +
-                  " - " +
-                  (resp._embedded.events[j].distance).toFixed(2) +
-                  "mi<br>" +
-                  "<img src=" + resp._embedded.events[j].images[0].url +
-                  " alt='event_img' width='115' station='" +
-                  station[0] + "' line='" +
-                  line[0] + "'>" +
-                  "<a href=" + resp._embedded.events[j].url +
-                  " target='_blank'>Purchase tickets now!</a></div><hr>");
+              nearby += ("<div class='stuff'>" + "<span class='position'>" + (j + 1) +
+                ". </span>" + events._embedded.venues[0].name + " (" + genre 
+                + ")<span id='eventDate'> - " + events.dates.start.localDate +
+                "</span><br>" + events.name + " - " + (events.distance).toFixed(2) +
+                "mi<br>" + "<img src=" + events.images[0].url +
+                " alt='event_img' width='115' station='" + station[0] + "' line='" +
+                line[0] + "'>" + "<a href=" + events.url +
+                " target='_blank'>Purchase tickets now!</a></div><hr>");
+
               j++;
           } //end while loop
 
@@ -461,15 +457,17 @@ class Home extends Component {
       } //end if statement
   }
 
-  resp3(resp) {
+  resp3(resp,line,station) {
+    console.log(resp.items);
     var upcomingTrain = "";
+    /*var minutes = resp.items.sort(function(a,b){return a[0].minutes < b[0].minutes});*/
 
     for (var i = 0; i < resp.items.length && i < 3; i++) {
 
       upcomingTrain += moment().add(resp.items[i].minutes, 'minutes').format("h:mm A") + " / ";
 
     }
-
+    console.log(line,station,resp,upcomingTrain);
     this.state.upcomingTrain = upcomingTrain;
 
   }
@@ -564,28 +562,31 @@ class Home extends Component {
 
     } //end else statement
 
-    this.state.movies = movies;
+    this.state.movies = movies;    
 
+  }
+
+  activateLazers() {
+    console.log("PEW! PEW!");
   }
 
   setInfo(station,gMapObj) {
 
+    var $btnEvnt = $(<button type="button" class="btn btn-default" id="btnEvnt">Events</button>)
+    var $btnMov = $(<button type="button" class="btn btn-default" id="btnMov">Movies</button>)
     var infowindow = gMapObj.infowindow;
     var marker = gMapObj.marker;
     var map = gMapObj.map;
 
-    this.state.info = ("<div class='station'><strong>" + station[0] + " - (" + moment(this.state.currentDate).format("M/D/YY") + ")" +
-      "<br>Upcoming Trains <i class='fa fa-train'></i> (real-time): " + 
+    this.state.info = ("<div class='station'><strong>" + station[0] + " - (" + moment(this.state.currentDate).format("M/D/YY") +
+      ")" + "<br>Upcoming Trains <i class='fa fa-train'></i> (real-time): " + 
       this.state.upcomingTrain.slice(0, this.state.upcomingTrain.length - 2) + "</strong>" +
-      "</div><div class='weather'>" + this.state.weather + "</div><hr>" +
-      "<div id='myCarousel' class='carousel slide' data-ride='carousel' data-interval='false'>" + 
-      "<ol class='carousel-indicators'>" + "<li data-target='#myCarousel' data-slide-to='0' class='active'></li>" +
-      "<li data-target='#myCarousel' data-slide-to='1'></li></ol>" + 
-      "<div class='carousel-inner'><div class='item active'>" + this.state.nearby + "</div><div class='item'>" + 
-      this.state.movies + "</div></div><a class='left carousel-control' href='#myCarousel' data-slide='prev'>" +
-      "<span class='glyphicon glyphicon-chevron-left'></span>" +
-      "<span class='sr-only'>Previous</span></a><a class='right carousel-control' href='#myCarousel' data-slide='next'>" +
-      "<span class='glyphicon glyphicon-chevron-right'></span><span class='sr-only'>Next</span></a></div>");
+      "</div><div class='weather'>" + this.state.weather + "</div><br>" + 
+      "<button type='button' class='btn btn-default' id='btnEvnt'>Events</button>" + " | " +
+      "<button type='button' class='btn btn-default' id='btnMov'>Movies</button>" + "<hr>" +
+      "<h5 style='margin:0' id='windowChoice'>Events Nearby</h5><hr>" +
+      "<div class='carousel-inner'><div class='item active' id='events'>" 
+      + this.state.nearby + "</div>" + "<div class='item' id='movies'>" + this.state.movies + "</div></div>");
 
     infowindow.setContent(this.state.info);
     infowindow.open(map, marker);
@@ -614,7 +615,7 @@ class Home extends Component {
     API.getInfo(line,station,URLs).then(function(response){
       this.resp1(response.data.resp1);
       this.resp2(response.data.resp2,line,station);
-      this.resp3(response.data.resp3);
+      this.resp3(response.data.resp3,line,station);
       this.resp4(response.data.resp4,line,station);
       this.setInfo(station,gMapObj);
     }.bind(this));
@@ -653,11 +654,7 @@ class Home extends Component {
                     this.state.prevWindow.close();
                   }
 
-                  this.addInfo(stations, line[0], { infowindow, map, marker })/*.then(function() {
-                      infowindow.setContent(this.state.info);
-                      infowindow.open(map, marker);
-                      this.state.prevWindow = infowindow;
-                  })*/;
+                  this.addInfo(stations, line[0], { infowindow, map, marker });
 
               }.bind(this)
           }.bind(this))(marker, i));
