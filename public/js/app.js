@@ -25,7 +25,7 @@ $(document).on("click", ".stuff", function(){
 	detailsObj.distance = $(this).find('span.distance').text();
 	detailsObj.link = $(this).find('a').attr('href');
 	
-	alert(detailsObj.name + " saved!");
+	alert("Event saved!");
 
 	details = JSON.stringify(detailsObj);	
 
@@ -68,7 +68,7 @@ $(document).on("click", ".movies_info", function(){
 
 	});
 
-	alert(detailsObj.title + " saved!");
+	alert("Movie saved!");
 
 	var details = JSON.stringify(detailsObj);
 
