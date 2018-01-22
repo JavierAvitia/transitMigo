@@ -24,7 +24,7 @@ body {
   padding-top: 20px;
 }
 
-.divBorder{
+.divBorder {
   padding:0.5em;
   border:black solid 1px;
   border-radius: 0.3em;
@@ -33,10 +33,15 @@ body {
   display:inline-block;
 }
 
-.panel.panel-default.divBorder{
+.panel.panel-default.divBorder {
   margin:1em;
   color:black;
   font-weight: bolder;
+}
+
+.infoImg {
+  display: block;
+  margin: 0 auto;
 }
 
 #logout {
@@ -51,7 +56,7 @@ body {
   margin: 0 auto;
 }
 
-@media screen and (max-width: 992px){
+@media screen and (max-width: 992px) {
   #map {
     width:600px;
     height:600px;
@@ -62,7 +67,7 @@ body {
   }
 }
 
-@media screen and (max-width: 767px){
+@media screen and (max-width: 767px) {
   img.movie {
     width: 200px;
   }
@@ -76,14 +81,14 @@ body {
   }
 }
 
-@media screen and (max-width: 692px){
+@media screen and (max-width: 692px) {
   #map{
     width:500px;
     height:500px;
   }
 }
 
-@media screen and (max-width: 592px){
+@media screen and (max-width: 592px) {
   #map{
     width:400px;
     height:400px;
@@ -95,5 +100,33 @@ body {
   
   img.event {
     height: 225px;
+  }
+}
+
+@media screen and (max-width: 492px) {
+  #map{
+    width:300px;
+    height:300px;
+  }
+  
+  img.event {
+    height: 175px;
+  }
+}
+
+@media screen and (max-width: 392px) {
+  img.movie {
+    width: 125px;
+  }
+  
+  img.event {
+    height: 150px;
+  }
+}
+
+@media screen and (max-width: 358px) {
+  #map{
+    width:250px;
+    height:250px;
   }
 }

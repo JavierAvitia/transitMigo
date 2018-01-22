@@ -459,7 +459,7 @@ class Home extends Component {
                 <span class='name'>${events.name}</span> - 
                 <span class='distance'>${(events.distance).toFixed(2)}mi</span><br>
                 <img src='${events.images[0].url}' alt='event_img' width='115' station='${station[0]}'
-                line='${line[0]}'><a href='${events.url}' target='_blank'>Purchase tickets now!</a></div><hr>`);
+                line='${line[0]}' class='infoImg'><a href='${events.url}' target='_blank'>Purchase tickets now!</a></div><hr>`);
 
               j++;
           } //end while loop
@@ -470,7 +470,7 @@ class Home extends Component {
   }
 
   resp3(resp,line,station) {
-    console.log(resp.items);
+    // console.log(resp.items);
     var upcomingTrain = "";
     /*var minutes = resp.items.sort(function(a,b){return a[0].minutes < b[0].minutes});*/
 
@@ -479,7 +479,7 @@ class Home extends Component {
       upcomingTrain += moment().add(resp.items[i].minutes, 'minutes').format("h:mm A") + " / ";
 
     }
-    console.log(line,station,resp,upcomingTrain);
+    // console.log(line,station,resp,upcomingTrain);
     this.state.upcomingTrain = upcomingTrain;
 
   }
@@ -488,7 +488,7 @@ class Home extends Component {
     var k = 0;
     var movies = "";
 
-    console.log(resp);
+    // console.log(resp);
 
     if ((resp.length === 0)) {
 
@@ -518,7 +518,7 @@ class Home extends Component {
         poster = "<img class='movie_poster' src='https://dlby.tmsimg.com/" + resp[i].preferredImage.uri +
           "?api_key=gvmc8sysuqe8pwpshucfnn33' height=150 station='" +
           station[0] + "' line='" +
-          line[0] + "'>";
+          line[0] + "' class='infoImg'>";
 
         for (var j = 0; j < resp[i].showtimes.length; j++) {
           if (resp[i].showtimes[j].ticketURI) {
