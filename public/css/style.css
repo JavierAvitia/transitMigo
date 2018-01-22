@@ -39,26 +39,27 @@ body {
   font-weight: bolder;
 }
 
-.cIN {
-  background-color: green;
-}
-
-.cOUT {
-  background-color: red;
-}
-
-.cLUNCH {
-  background-color: yellow;
-}
-
 #logout {
   margin: 10px 0px;
   float: right;
 }
 
 #map {
-  width:600px;
-  height:600px;
+  width:800px;
+  height:800px;
+  display:block;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 992px){
+  #map {
+    width:600px;
+    height:600px;
+  }
+
+  .col-sm-4 {
+    width: 50%;
+  }
 }
 
 @media screen and (max-width: 767px){
@@ -68,5 +69,31 @@ body {
   
   img.event {
     height: 300px;
+  }
+
+  .col-sm-4 {
+    width: 25%;
+  }
+}
+
+@media screen and (max-width: 692px){
+  #map{
+    width:500px;
+    height:500px;
+  }
+}
+
+@media screen and (max-width: 592px){
+  #map{
+    width:400px;
+    height:400px;
+  }  
+
+  img.movie {
+    width: 150px;
+  }
+  
+  img.event {
+    height: 225px;
   }
 }

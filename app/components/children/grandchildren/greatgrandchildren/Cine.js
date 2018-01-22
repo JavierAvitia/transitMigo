@@ -10,8 +10,8 @@ class Cine extends Component {
   }
 
   renderShowtime(){
-    return this.state.showtimes.map( showtime => (
-      <div className="col-xs-3 col-sm-4">
+    return this.state.showtimes.map( (showtime, i) => (
+      <div className="col-xs-3 col-sm-4" key={i}>
       	<a href={showtime.href} target="_blank">
       		{showtime.showtime}
       	</a>

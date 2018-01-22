@@ -26,8 +26,15 @@ class Favorites extends Component {
     });
   }
   // A helper method for rendering one panel for each quote
-  renderSaves() {
-    return this.state.saves.map(save => (
+  renderSaves(choice) {
+
+    if(choice){
+      var saves = this.state.saves.filter( (save, i) => i % 2 === 0);
+    } else{
+      var saves = this.state.saves.filter( (save, i) => i % 2 != 0);
+    }
+
+    return saves.map(save => (
       <Save
         save={save}
         key={save.id}
@@ -40,7 +47,12 @@ class Favorites extends Component {
       <div className="container">
         <div className="row">
           <hr />
-          {this.renderSaves()}
+          <div className="col-xs-12 col-sm-6">
+            {this.renderSaves(true)}
+          </div>
+          <div className="col-xs-12 col-sm-6">
+            {this.renderSaves(false)}
+          </div>
         </div>
       </div>
     );
