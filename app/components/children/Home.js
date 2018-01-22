@@ -595,7 +595,7 @@ class Home extends Component {
       "</div><div class='weather'>" + this.state.weather + "</div><br>" + 
       "<button type='button' class='btn btn-default' id='btnEvnt'>Events</button>" + " | " +
       "<button type='button' class='btn btn-default' id='btnMov'>Movies</button>" + "<hr>" +
-      "<h5 style='margin:0' id='windowChoice'>Events Nearby</h5><hr>" +
+      "<h5 style='margin:0' id='windowChoice'>Events Nearby</h5><br>(click to save)<hr>" +
       "<div class='carousel-inner'><div class='item active' id='events'>" 
       + this.state.nearby + "</div>" + "<div class='item' id='movies'>" + this.state.movies + "</div></div>");
 
