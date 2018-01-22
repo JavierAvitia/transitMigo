@@ -8,17 +8,17 @@ const Navbar = (props) => (
         <span className="glyphicon glyphicon-log-out" ></span> Log out
       </Link>
       <div className="navbar-header">
-        <Link className="navbar-brand" to="/" onClick={() => this.props.pathName("/")}>Med App</Link>
+        <Link className="navbar-brand" to="/" onClick={() => this.props.pathName("/")}>transitMigo</Link>
       </div>
       <ul className="nav navbar-nav text-center">
         <li className={location.pathname === "/" && "active"}>
           <Link to="/" onClick={() => this.props.pathName("/")}>Home</Link>
         </li>
-        <li className={location.pathname === "/tasks" && "active"}>
-          <Link to="/tasks" onClick={() => this.props.pathName("/tasks")}>Tasks</Link>
+        <li className={location.pathname === "/saves" && "active"}>
+          <Link to="/saves" onClick={() => this.props.pathName("/saves")}>Saves</Link>
         </li>
-        <li className={location.pathname === "/priorities" && "active"}>
-          <Link to="/priorities" onClick={() => this.props.pathName("/priorities")}>Priorities</Link>
+        <li className={location.pathname === "/favorites" && "active"}>
+          <Link to="/favorites" onClick={() => this.props.pathName("/favorites")}>Favorites</Link>
         </li>
       </ul>
     </div>

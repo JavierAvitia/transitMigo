@@ -1,3 +1,4 @@
+import scriptLoader from 'react-async-script-loader';
 import React, { Component } from "react";
 import Time from "./grandchildren/Time";
 import API from "../../utils/API";
@@ -17,7 +18,7 @@ class Home extends Component {
       upcomingTrain:"",
       info: "",
       eventType: "",
-      radius: 5,
+      radius: 2,
       sortMethod: "distance,asc",
       currentDate: moment().format().substr(0, 19) + "Z", //format for TM api startDateTime/endDateTime
       weekDate: moment().add(14, 'day').format().substr(0, 19) + "Z",
@@ -373,12 +374,23 @@ class Home extends Component {
     this.addInfo = this.addInfo.bind(this);
     this.setInfo = this.setInfo.bind(this);
     this.renderMap = this.renderMap.bind(this);
-    this.activateLazers = this.activateLazers.bind(this);
     this.populateMarkers = this.populateMarkers.bind(this);
   }
-  // Getting all quotes when the component mounts
+
+  componentWillReceiveProps ({ isScriptLoaded, isScriptLoadSucceed }) {
+    if (isScriptLoaded && !this.props.isScriptLoaded) { // load finished 
+      if (isScriptLoadSucceed) {
+        this.getTime();
+      }
+      else this.props.onError()
+    }
+  }
+
   componentDidMount() {
-    this.getTime();
+    const { isScriptLoaded, isScriptLoadSucceed } = this.props
+    if (isScriptLoaded && isScriptLoadSucceed) {
+      this.getTime();
+    }
   }
 
   getTime() {
@@ -425,7 +437,7 @@ class Home extends Component {
 
     if (jQuery.isEmptyObject(resp._embedded)) {
 
-        nearby = "Check again soon for more events!";
+        this.state.nearby = "Check again soon for more events!";
 
       } else {
 
@@ -440,14 +452,14 @@ class Home extends Component {
                   genre = "N/A";
               }
 
-              nearby += ("<div class='stuff'>" + "<span class='position'>" + (j + 1) +
-                ". </span>" + events._embedded.venues[0].name + " (" + genre 
-                + ")<span id='eventDate'> - " + events.dates.start.localDate +
-                "</span><br>" + events.name + " - " + (events.distance).toFixed(2) +
-                "mi<br>" + "<img src=" + events.images[0].url +
-                " alt='event_img' width='115' station='" + station[0] + "' line='" +
-                line[0] + "'>" + "<a href=" + events.url +
-                " target='_blank'>Purchase tickets now!</a></div><hr>");
+              nearby += (`<div class='stuff'><span class='position'>${(j + 1)}.</span>
+                <span class='venue'>${events._embedded.venues[0].name}</span>
+                <span class='genre'>(${genre})</span><br>
+                <span class='date'>${moment(events.dates.start.localDate).format("dddd, MMMM Do YYYY")}</span><br>
+                <span class='name'>${events.name}</span> - 
+                <span class='distance'>${(events.distance).toFixed(2)}mi</span><br>
+                <img src='${events.images[0].url}' alt='event_img' width='115' station='${station[0]}'
+                line='${line[0]}'><a href='${events.url}' target='_blank'>Purchase tickets now!</a></div><hr>`);
 
               j++;
           } //end while loop
@@ -475,6 +487,8 @@ class Home extends Component {
   resp4(resp,line,station) {
     var k = 0;
     var movies = "";
+
+    console.log(resp);
 
     if ((resp.length === 0)) {
 
@@ -538,7 +552,7 @@ class Home extends Component {
 
           (Object.keys(moviesObj[movie])).forEach(function(theatre) {
 
-            times += "<br />" + "<h6>" + theatre + "</h6>";
+            times += "<br />" + "<span class='cineTime'><h6>" + theatre + "</h6>";
 
             for (var i = 0; i < Object.keys(moviesObj[movie][theatre]).length; i++) {
 
@@ -546,6 +560,7 @@ class Home extends Component {
                             
             };
 
+            times += "</span>"
 
           })
 
@@ -553,8 +568,10 @@ class Home extends Component {
       
         if (times != '') {
           
-          movies += "<div class='movies_info'>" + poster + "<h4><strong>" + resp[i].title + "</strong>"
-            + "&emsp;Rated: " + ratings + "</h4>" + "<span>" + times + "</span>" + "</div>" + "<hr>";
+          movies += "<div class='movies_info'>" + poster + "<h4><strong class='title'>" + resp[i].title + "</strong>"
+            + "&emsp;Rated: <span class='rating'>" + ratings + "</span></h4>" +
+            `<span class='date'>${moment(this.state.currentDate).format("dddd, MMMM Do YYYY")}</span>`
+            + "<br><span>" + times + "</span>" + "</div>" + "<hr>";
         
         }
 
@@ -566,14 +583,8 @@ class Home extends Component {
 
   }
 
-  activateLazers() {
-    console.log("PEW! PEW!");
-  }
-
   setInfo(station,gMapObj) {
 
-    var $btnEvnt = $(<button type="button" class="btn btn-default" id="btnEvnt">Events</button>)
-    var $btnMov = $(<button type="button" class="btn btn-default" id="btnMov">Movies</button>)
     var infowindow = gMapObj.infowindow;
     var marker = gMapObj.marker;
     var map = gMapObj.map;
@@ -593,6 +604,10 @@ class Home extends Component {
     this.state.prevWindow = infowindow;
   }
 
+  sendInfo() {
+    
+  }
+
   addInfo(station,line,gMapObj) {
 
     var eventsURL = "https://app.ticketmaster.com/discovery/v2/events.json?size=100&latlong=" +
@@ -602,7 +617,7 @@ class Home extends Component {
 
     var moviesURL = "https://data.tmsapi.com/v1.1/movies/showings?startDate=" +
       this.state.currentDate.slice(0, 10) + "&lat=" + station[1] + "&lng=" + station[2] +
-      "&api_key=cuen8da9wsfaewzvecfxd7ga";
+      "&radius=" + this.state.radius + "&api_key=cuen8da9wsfaewzvecfxd7ga";
 
     var weatherURL = "https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='(" +
       station[1] + "," + station[2] + ")') and u='f'&format=json";
@@ -697,12 +712,13 @@ class Home extends Component {
   // A helper method for rendering one panel for each quote
   renderMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 34.048775, lng: -118.258615 },
-        zoom: 10,
-        styles: this.state.styles["silver"],
-        mapTypeControl: false,
-        clickableIcons: false
+      center: { lat: 34.048775, lng: -118.258615 },
+      zoom: 10,
+      styles: this.state.styles["silver"],
+      mapTypeControl: false,
+      clickableIcons: false
     });
+
     this.populateMarkers(this.state.transitLines,this.state.styles,map);
   }
 
@@ -724,4 +740,4 @@ class Home extends Component {
   }
 }
 
-export default Home;
+export default scriptLoader('https://maps.googleapis.com/maps/api/js?key=AIzaSyBP3Xb01OSpLPBryCTei3tja3b8pU90oIg')(Home);

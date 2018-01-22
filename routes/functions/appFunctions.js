@@ -1,4 +1,5 @@
 var axios = require("axios");
+var db = require("../../models");
 
 module.exports = {
 //Get all info for a particular transit stop.

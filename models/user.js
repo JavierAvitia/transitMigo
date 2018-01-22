@@ -34,10 +34,9 @@ module.exports = function(sequelize, DataTypes) {
         User.belongsToMany(models.Task, {
             through: "UserTasks"
         });
-        // User.belongsToMany(models.Task, {
-        //     through: "taskTeams"/*,
-        //     as:"taskUsers"*/
-        // });
+        User.belongsToMany(models.Save, {
+            through: "UserSaves"
+        });
     };
 
     return User;

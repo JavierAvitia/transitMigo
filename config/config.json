@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": "#Dubnium105#",
-    "database": "mdDB",
+    "database": "transitMigoDB",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

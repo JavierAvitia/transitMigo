@@ -1,6 +1,23 @@
 import axios from "axios";
 
 const API = {
+  //Save APIs
+  getSaves: function() {
+    return axios.get("/api/saves");
+  },
+  //
+  deleteSave: function(id) {
+    return axios.delete(`/api/saves/${id}`);
+  },
+  // Toggles a quote's favorite property in the db
+  favoriteSave: function(save) {
+    save.priority = !save.priority;
+    const { id, priority } = save;
+    return axios.put(`/api/saves/${id}`, { priority });
+  },
+  //end Saves
+
+
   //Task APIs
   getTasks: function() {
     return axios.get("/api/tasks");
@@ -62,8 +79,7 @@ const API = {
   //end User
 
   //App APIs
-  getInfo: function(line,station,URLs){
-    /*return axios.get(`/api/metro/${line}/${station}`)*/
+  getInfo: function(line,station,URLs) {
     return axios.post("/api/populate",{ line, station, URLs})
   }
   //end App

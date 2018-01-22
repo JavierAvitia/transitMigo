@@ -60,3 +60,13 @@ body {
   width:600px;
   height:600px;
 }
+
+@media screen and (max-width: 767px){
+  img.movie {
+    width: 200px;
+  }
+  
+  img.event {
+    height: 300px;
+  }
+}

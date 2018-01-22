@@ -1,9 +1,39 @@
 var timesheetAPI = require("./functions/timesheetFunctions.js");
 var taskAPI = require("./functions/taskFunctions.js");
+var saveAPI = require("./functions/saveFunctions.js");
 var userAPI = require("./functions/userFunctions.js");
 var appAPI = require("./functions/appFunctions.js");
 var express = require("express");
 var router = new express.Router();
+
+/*BEGIN SAVE ROUTES*/
+
+//Get all tasks or just one by ?id="X" query
+router.get("/saves", function(req,res){
+    saveAPI.getSaves(req,res);
+});
+//Create new save using posted data and cookies
+router.post("/save", function(req,res) {
+    // axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + req.params.line + "/stops/" +
+    //     req.params.station + "/predictions/",
+    //     { crossdomain: true }
+    // ).then(function(data) {
+    //     console.log(data.data);
+    //     /*res.json(data);*/
+    // });
+    saveAPI.createSave(req,res);
+
+});
+//Update an existing task with /:id params using passed req.body
+router.put("/saves/:id", function(req, res) {
+    saveAPI.updateSave(req, res);
+});
+//Delete an existing task with /:id params
+router.delete("/saves/:id", function(req, res) {
+    saveAPI.deleteSave(req,res);
+});
+
+/*END SAVE ROUTES*/
 
 /*BEGIN TASK ROUTES*/
 
@@ -75,6 +105,7 @@ router.put("/UserTasks/:action", function(req, res) {
 });
 
 /*END USER ROUTES*/
+
 /* /metro/:line/:station */
 router.post("/populate", function(req,res) {
     // axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + req.params.line + "/stops/" +
