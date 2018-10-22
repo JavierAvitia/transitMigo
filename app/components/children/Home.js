@@ -1,4 +1,5 @@
-import scriptLoader from 'react-async-script-loader';
+// import scriptLoader from 'react-async-script-loader';
+import GoogleMapReact from 'google-map-react';
 import React, { Component } from "react";
 import Time from "./grandchildren/Time";
 import API from "../../utils/API";
@@ -373,8 +374,9 @@ class Home extends Component {
     this.getTime = this.getTime.bind(this);
     this.addInfo = this.addInfo.bind(this);
     this.setInfo = this.setInfo.bind(this);
-    this.renderMap = this.renderMap.bind(this);
+    // this.renderMap = this.renderMap.bind(this);
     this.populateMarkers = this.populateMarkers.bind(this);
+    this.onGoogleApiLoaded = this.onGoogleApiLoaded.bind(this);
   }
 
   componentWillReceiveProps ({ isScriptLoaded, isScriptLoadSucceed }) {
@@ -405,7 +407,7 @@ class Home extends Component {
       weekDate
     });
 
-    this.renderMap();
+    // this.renderMap();
   }
 
   resp1(resp){
@@ -604,9 +606,9 @@ class Home extends Component {
     this.state.prevWindow = infowindow;
   }
 
-  sendInfo() {
+  // sendInfo() {
     
-  }
+  // }
 
   addInfo(station,line,gMapObj) {
 
@@ -636,7 +638,7 @@ class Home extends Component {
     }.bind(this));
   }
 
-  populateMarkers(latLongArr,styles,map) {
+  populateMarkers(latLongArr,styles,map,maps) {
     //var prevWindow = this.state.prevWindow;
 
     latLongArr.forEach(function(line, j) {
@@ -645,24 +647,24 @@ class Home extends Component {
       var info = [];
       info.length = line[2].length;
 
-      var infowindow = new google.maps.InfoWindow();
+      var infowindow = new maps.InfoWindow();
       var marker, i;
       //do not change from i, it is same i of station index!
       line[2].forEach(function(stations, i) {
           /*console.log(this);*/
-          marker = new google.maps.Marker({
+          marker = new maps.Marker({
 
-              position: new google.maps.LatLng(stations[1], stations[2]),
+              position: new maps.LatLng(stations[1], stations[2]),
               map: map,
               icon: line[1]
 
           });
 
-          google.maps.event.addListener(infowindow, 'domready', function() {
+          maps.event.addListener(infowindow, 'domready', function() {
               $('.weather').parent().parent().css({ 'width': '350px', 'height': '350px' });
           });
 
-          google.maps.event.addListener(marker, 'click', (function(marker, i) {
+          maps.event.addListener(marker, 'click', (function(marker, i) {
               return function() {
 
                   if (this.state.prevWindow != null){
@@ -688,7 +690,7 @@ class Home extends Component {
 
           /*this.markersArr.push(marker);*/
 
-          google.maps.event.addListener(infowindow, 'closeclick', function() {
+          maps.event.addListener(infowindow, 'closeclick', function() {
 
               map.setOptions({
                   styles: styles["silver"],
@@ -705,22 +707,26 @@ class Home extends Component {
     }.bind(this));
   }
 
+  onGoogleApiLoaded({map, maps}) {
+    this.populateMarkers(this.state.transitLines,this.state.styles,map,maps);
+  }
+
   /*NEED TO MOVE ALL THE GIANT ARRAY INTO A UTILS AND IMPORT THEM*/
   /*POLYLINES NEED TO BE AUTOMATIC OR TEMPORARILY HARD-CODED AS IN PROJECT ONE*/
   /*FUNCTIONS OBJECT FROM PROJECT ONE NEEDS TO BE CONVERTED INTO REACT STATE PROPERTIES OR COMPONENT FUNCTIONS*/
 
   // A helper method for rendering one panel for each quote
-  renderMap() {
-    var map = new google.maps.Map(document.getElementById('map'), {
-      center: { lat: 34.048775, lng: -118.258615 },
-      zoom: 10,
-      styles: this.state.styles["silver"],
-      mapTypeControl: false,
-      clickableIcons: false
-    });
+  // renderMap() {
+  //   var map = new google.maps.Map(document.getElementById('map'), {
+  //     center: { lat: 34.048775, lng: -118.258615 },
+  //     zoom: 10,
+  //     styles: this.state.styles["silver"],
+  //     mapTypeControl: false,
+  //     clickableIcons: false
+  //   });
 
-    this.populateMarkers(this.state.transitLines,this.state.styles,map);
-  }
+  //   this.populateMarkers(this.state.transitLines,this.state.styles,map);
+  // }
 
   render() {
     return (
@@ -732,6 +738,25 @@ class Home extends Component {
             <hr />
             <div id="map">
               {/*Google map will render here.*/}
+                <GoogleMapReact
+                    bootstrapURLKeys={{ key: "AIzaSyBP3Xb01OSpLPBryCTei3tja3b8pU90oIg" }}
+                    defaultCenter={{ lat: 34.048775, lng: -118.258615 }}
+                    defaultZoom={10}
+                    onGoogleApiLoaded={this.onGoogleApiLoaded}
+                    options={
+                        {
+                            styles: this.state.styles["silver"],
+                            mapTypeControl: false,
+                            clickableIcons: false
+                        }
+                    }
+                >
+                {/*<AnyReactComponent
+                    lat={59.955413}
+                    lng={30.337844}
+                    text={'Kreyser Avrora'}
+                />*/}
+                </GoogleMapReact>
             </div>
           </div>
         </div>
@@ -740,4 +765,4 @@ class Home extends Component {
   }
 }
 
-export default scriptLoader('https://maps.googleapis.com/maps/api/js?key=AIzaSyBP3Xb01OSpLPBryCTei3tja3b8pU90oIg')(Home);
+export default Home;//scriptLoader('https://maps.googleapis.com/maps/api/js?key=AIzaSyBP3Xb01OSpLPBryCTei3tja3b8pU90oIg')(Home);
