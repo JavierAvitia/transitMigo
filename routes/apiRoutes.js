@@ -106,17 +106,20 @@ router.put("/UserTasks/:action", function(req, res) {
 
 /*END USER ROUTES*/
 
-/* /metro/:line/:station */
+/* API routes */
 router.post("/populate", function(req,res) {
-    // axios.get("https://api.metro.net/agencies/lametro-rail/routes/" + req.params.line + "/stops/" +
-    //     req.params.station + "/predictions/",
-    //     { crossdomain: true }
-    // ).then(function(data) {
-    //     console.log(data.data);
-    //     /*res.json(data);*/
-    // });
+
     appAPI.getInfo(req,res);
 
 });
+/* END API ROUTES*/
+
+/*Database Routes*/
+router.post("/setDB", function(req,res) {
+
+    appAPI.setDB(req,res);
+
+});
+/*End Database Routes*/
 
 module.exports = router;

@@ -411,24 +411,29 @@ class Home extends Component {
   }
 
   resp1(resp){
+    console.log(resp)
     var weatherIcon = "";
+    var weatherMain = resp.weather[0].main.toLowerCase()
+    var weatherHigh = ( ((resp.main.temp_max - 273.15) * (9/5)) + 32 ).toFixed(2)
+    var weatherLow = ( ((resp.main.temp_min - 273.15) * (9/5)) + 32 ).toFixed(2)
+    var weatherText = resp.weather[0].description
 
-    if (resp.query.results.channel.item.forecast[0].text.toLowerCase().search("sun") > -1) {
+    if (weatherMain.search("clear") > -1) {
 
         weatherIcon = "<i class='fa fa-sun-o' aria-hidden='true'></i>";
 
-    } else if (resp.query.results.channel.item.forecast[0].text.toLowerCase().search("cloud") > -1) {
+    } else if (weatherMain.search("cloud") > -1) {
 
         weatherIcon = "<i class='fa fa-cloud' aria-hidden='true'></i>";
 
-    } else if (resp.query.results.channel.item.forecast[0].text.toLowerCase().search("rain") > -1) {
+    } else if (weatherMain.search("rain") > -1) {
 
         weatherIcon = "<i class='fa fa-tint' aria-hidden='true'></i>";
 
     }
 
-    this.state.weather = `Local weather: ${resp.query.results.channel.item.forecast[0].high} H/ 
-      ${resp.query.results.channel.item.forecast[0].low} L/ ${resp.query.results.channel.item.forecast[0].text} 
+    this.state.weather = `Local weather: ${weatherHigh} H/ 
+      ${weatherLow} L/ ${weatherText} 
       ${weatherIcon} `
 
   }
@@ -621,8 +626,7 @@ class Home extends Component {
       this.state.currentDate.slice(0, 10) + "&lat=" + station[1] + "&lng=" + station[2] +
       "&radius=" + this.state.radius + "&api_key=cuen8da9wsfaewzvecfxd7ga";
 
-    var weatherURL = "https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='(" +
-      station[1] + "," + station[2] + ")') and u='f'&format=json";
+    var weatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${station[1]}&lon=${station[2]}&APPID=ac630622ef4cf489d2090a47cebdb299`;
 
     var metroURL = "https://api.metro.net/agencies/lametro-rail/routes/" + line[1] + "/stops/" +
       station[3] + "/predictions/";
@@ -630,6 +634,14 @@ class Home extends Component {
     var URLs = { eventsURL, moviesURL, weatherURL, metroURL}
 
     API.getInfo(line,station,URLs).then(function(response){
+
+      // START
+      // TEMP - MUST UPDATE TO LOOP THROUGH ALL STOPS AND SET TO DB AUTOMATICALLY
+      // console.log(response)
+      API.setDB(line,station,response);
+
+      // END
+
       this.resp1(response.data.resp1);
       this.resp2(response.data.resp2,line,station);
       this.resp3(response.data.resp3,line,station);
@@ -642,7 +654,7 @@ class Home extends Component {
     //var prevWindow = this.state.prevWindow;
 
     latLongArr.forEach(function(line, j) {
-      /*console.log(line)*/
+      console.log(line)
 
       var info = [];
       info.length = line[2].length;
@@ -670,6 +682,12 @@ class Home extends Component {
                   if (this.state.prevWindow != null){
                     this.state.prevWindow.close();
                   }
+
+                  /*
+    
+                    NEED TO MODIFY STARTING HERE
+
+                  */
 
                   this.addInfo(stations, line[0], { infowindow, map, marker });
 

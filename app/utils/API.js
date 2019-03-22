@@ -81,8 +81,14 @@ const API = {
   //App APIs
   getInfo: function(line,station,URLs) {
     return axios.post("/api/populate",{ line, station, URLs})
-  }
+  },
   //end App
+
+  // Database APIs
+  setDB: function(line,station,response){
+    return axios.post("/api/setDB",{ line, station, response })
+  }
+  //
 
 };
 

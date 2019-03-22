@@ -8,10 +8,10 @@ const NavbarLOff = (props) => (
         <Link className="navbar-brand" to="/" onClick={() => this.props.pathName("/")}>transitMigo</Link>
       </div>
       <ul className="nav navbar-nav text-center">
-        <li className={location.pathname === "/login" && "active"}>
+        <li className={location.pathname === "/login" ? "active" : undefined}>
           <Link to="/login" onClick={() => this.props.pathName("/login")}>Login</Link>
         </li>
-        <li className={location.pathname === "/signup" && "active"}>
+        <li className={location.pathname === "/signup" ? "active" : undefined}>
           <Link to="/signup" onClick={() => this.props.pathName("/signup")}>Sign-Up</Link>
         </li>
       </ul>
