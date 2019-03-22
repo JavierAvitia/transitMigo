@@ -1,6 +1,9 @@
 {
   "name": "ground_contrello",
   "version": "1.0.0",
+  "engines": {
+    "node":"6.11.0"
+  },
   "description": "groundContrello to Team Major Tom",
   "main": "server.js",
   "scripts": {
