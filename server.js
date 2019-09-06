@@ -2,6 +2,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var socket = require("socket.io");
 var cookieParser = require('cookie-parser');
+var con = require("./connect.js")
 // var methodOverride = require('method-override');
 // Sets up the Express App
 // =============================================================
@@ -41,3 +42,11 @@ db.sequelize.sync({force:false}).then(function() {
         console.log('Server listening on PORT: ', PORT);
     });
 });
+
+
+// TEST
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("Connected!");
+});
+// END
